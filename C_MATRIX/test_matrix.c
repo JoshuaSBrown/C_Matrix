@@ -4,23 +4,24 @@
  *          Scientific Computing                                              *
  *          test_matrix.c function                                            *
  *                                                                            *
- *                                   *
- * This function tests the following functions:                                   *
- *		o new_matrix                                   *
- *      o print_matrix                                   *
- *      o delete_matrix                                   *
- *      o get_rows                                   *
- *      o get_cols			                                   *
- *		o get_total_elems                                   *
- *		o new_matrix_row_panel                                   *
- *      o set_elem_core_matrix                                   *
- *      o get_elem_core_matrix                                   *
- *      o set_elem_top_row_ghost_matrix                                   *
- *		o get_elem_top_row_ghost_matrix                                         *
- *      o set_elem_bottom_row_ghost_matrix                                   *
- *		o get_elem_bottom_row_ghost_matrix                                         *
- *      o get_rows_core_matrix                                   *
- *      o get_cols_core_matrixv                                   *
+ *                                                                            *
+ * This function tests the following functions:                               *
+ *		o newMatrix                                                             *
+ *    o deleteMatrix                                                          *
+ *    o printMatrix                                                           *
+ *    o printIntMatrix                                                        *
+ *    o getRowsMatrix			                                                    *
+ *		o getColsMatrix                                                         *
+ *		o sumAllElemsMatrix                                                     *
+ *    o getTotalElemsMatrix                                                   *
+ *    o getElemMatrix                                                         *
+ *    o setElemMatrix                                                         *
+ *		o setAllMatrix                                                          *
+ *    o addAllMatrix                                                          *
+ *		o subAllMatrix                                                          *
+ *    o mulAllMatrix                                                          *
+ *    o divAllMatrix                                                          *
+ *    o copyMatrix                                                            *
  ******************************************************************************/
 #include <stdlib.h>
 #include <stdio.h>
