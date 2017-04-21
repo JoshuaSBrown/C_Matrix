@@ -81,7 +81,8 @@ int main(void){
   assert(rv==-1);
   rv = sumAllElemsMatrix(mat,&sum);
   assert(rv==0);
-  assert(sum==0.0);
+  float temp = 0.0;
+  assert(sum==temp);
 
   printf("Testing: getTotalElemsMatrix\n");
   rv = getTotalElemsMatrix(NULL);

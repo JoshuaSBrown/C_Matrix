@@ -77,10 +77,12 @@ static inline float _operate(const int start_row        ,
                              const matrix * mat         ,
                              float (*func) (float,float)){
 
-  float val;
+  float val = 0.0;
+  float val2;
   for(int r=start_row;r<=end_row;r++){
     for(int c=start_col;c<=end_col;c++){
-      val = func(_getE(mat,r,c),val);
+      val2 = _getE(mat,r,c);
+      val = (*func)(val2,val);
     }
   }
   return val;
