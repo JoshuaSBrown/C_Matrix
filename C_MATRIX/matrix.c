@@ -63,11 +63,27 @@ static inline void _addE(matrix * mat   ,
 static inline void _manipulate(matrix * mat              ,
 	                             const float val           ,
 															 float (*func)(float,float)){
-  for(int i=0;i<mat->rows;i++){
-    for(int j=0;j<mat->cols;j++){
-      _setE(mat,i,j,(*func)(_getE(mat,i,j),val));
+  for(int r=0;r<mat->rows;r++){
+    for(int c=0;c<mat->cols;c++){
+      _setE(mat,r,c,(*func)(_getE(mat,r,c),val));
     }
   }
+}
+
+static inline float _operate(const int start_row        ,
+                             const int end_row          ,
+                             const int start_col        ,
+                             const int end_col          ,
+                             const matrix * mat         ,
+                             float (*func) (float,float)){
+
+  float val;
+  for(int r=start_row;r<=end_row;r++){
+    for(int c=start_col;c<=end_col;c++){
+      val = func(_getE(mat,r,c),val);
+    }
+  }
+  return val;
 }
 
 /******************************************************************************
@@ -224,11 +240,67 @@ int sumAllElemsMatrix(const matrix * mat,float * sum){
 	}
 #endif
   *sum = 0.0;
-	for(int i=0;i<mat->rows;i++){
-		for(int j=0;j<mat->cols;j++){
-			*sum += _getE(mat,i,j);
-		}
+  *sum = _operate(0,mat->rows-1,
+                  0,mat->cols-1,
+                  mat,
+                  &_add);
+	return 0;
+}
+
+int sumElemsMatrix(const int start_row,
+                   const int end_row  ,
+                   const int start_col,
+                   const int end_col  ,
+                   const matrix * mat ,
+                   float * sum        ){
+
+#ifdef _ERROR_CHECKING_ON_
+	if(mat==NULL){
+		fprintf(stderr,"ERROR mat is NULL in sumElemsMatrix\n");
+    _hardcrash();
+    return -1;
 	}
+	if(sum==NULL){
+		fprintf(stderr,"ERROR sum is NULL in sumElemsMatrix\n");
+    _hardcrash();
+    return -1;
+	}
+  if(start_row<0){
+    fprintf(stderr,"ERROR start_row < 0 in sumElemsMatrix\n");
+    _hardcrash();
+    return -1;
+  }
+  if(start_row>end_row){
+    fprintf(stderr,"ERROR start_row > end_row in sumElemsMatrix\n");
+    _hardcrash();
+    return -1;
+  }
+  if(end_row>=mat->rows){
+    fprintf(stderr,"ERROR end_row >= mat->rows in sumElemsMatrix\n");
+    _hardcrash();
+    return -1;
+  }
+  if(start_col<0){
+    fprintf(stderr,"ERROR start_col < 0 in sumElemsMatrix\n");
+    _hardcrash();
+    return -1;
+  }
+  if(start_col>end_col){
+    fprintf(stderr,"ERROR start_col > end_col in sumElemsMatrix\n");
+    _hardcrash();
+    return -1;
+  }
+  if(end_col>=mat->cols){
+    fprintf(stderr,"ERROR end_col is >= mat->cols in sumElemsMatrix\n");
+    _hardcrash();
+    return -1;
+  }
+#endif
+  *sum = 0.0;
+  *sum = _operate(0,mat->rows-1,
+                  0,mat->cols-1,
+                  mat,
+                  &_add);
 	return 0;
 }
 

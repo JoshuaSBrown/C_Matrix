@@ -60,6 +60,19 @@ int getColsMatrix(const matrix * mat);
  * -1 - indicates the matrix was NULL or sum was NULL                         */
 int sumAllElemsMatrix(const matrix * mat, float * sum);
 
+
+/* Fuction sums up every element in the matrix mat defined between and        *
+ * including the rows start_row - end_row and start_col - end_col. return     *
+ * values are given by:                                                       *
+ *  0 - indicates success                                                     *
+ * -1 - indicates out of bounds or NULL matrix or sum pointer                 */
+int sumElemsMatrix(const int start_row,
+                   const int end_row  ,
+                   const int start_col,
+                   const int end_col  ,
+                   const matrix * mat ,
+                   float * sum        );
+
 /* Determines the total number of elements in the matrix where the return     *
  * values is given as:                                                        *
  * >0 - greater than 0 indicates the total number of elements                 *
