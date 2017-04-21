@@ -299,8 +299,8 @@ int sumElemsMatrix(const int start_row,
   }
 #endif
   *sum = 0.0;
-  *sum = _operate(0,mat->rows-1,
-                  0,mat->cols-1,
+  *sum = _operate(start_row,end_row,
+                  start_col,end_col,
                   mat,
                   &_add);
 	return 0;
