@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "matrix.h"
-
+#include "omp.h"
 /******************************************************************************
  * Internal Library Functions                                                 *
  ******************************************************************************/
@@ -40,14 +40,16 @@ static inline float _val(const float val1, const float val2){
   return 0.0+val2;
 }
 
-static inline float _getE(const matrix * mat, const int r, const int c){
+static inline __attribute__((always_inline)) 
+float _getE(const matrix * mat, const int r, const int c){
   return mat->data[(r)*mat->cols+c];
 }
 
-static inline void _setE(matrix * mat  ,
-	                      const int r    ,
-												const int c    ,
-	                      const float val)
+static inline __attribute__((always_inline)) 
+void _setE(matrix * mat  ,
+           const int r    ,
+					 const int c    ,
+	         const float val)
 {
   mat->data[(r)*mat->cols+c] = val;
 }
@@ -60,14 +62,43 @@ static inline void _addE(matrix * mat   ,
   _setE(mat,r,c,_getE(mat,r,c)+val);
 }
 
-static inline void _manipulate(matrix * mat              ,
-	                             const float val           ,
-															 float (*func)(float,float)){
-  for(int r=0;r<mat->rows;r++){
-    for(int c=0;c<mat->cols;c++){
-      _setE(mat,r,c,(*func)(_getE(mat,r,c),val));
+static inline __attribute__((always_inline)) 
+void _manipulate(matrix * mat              ,
+	               float val           ,
+							   float (*func)(float,float)){
+
+
+
+  #pragma omp parallel for shared(mat)
+  for(int i=0;i<omp_get_num_threads();i++){
+    int rank = omp_get_thread_num();
+    int proc = omp_get_num_threads();
+    const int val2 = val;
+    int rows = mat->rows/proc;
+    int rem  = mat->rows%proc;
+    int cols = mat->cols;
+    int r_start;
+    int r_finish;
+    
+    if(rank<(proc-rem)){
+      r_start = rank*rows;
+      r_finish = r_start+rows;
+    }else{
+      r_start = (proc-rem)*rows+(rank-(proc-rem))*(rows+1);
+      r_finish = r_start+(rows+1);
+      rows++;
+    }    
+
+    printf("Number of threads %d rank %d rows %d\nr_start %d\n"
+           "r_finish %d\n",proc,rank,rows,r_start,r_finish);
+  
+    for(int r=r_start;r<r_finish;r++){
+      for(int c=0;c<cols;c++){
+        _setE(mat,r,c,(*func)(_getE(mat,r,c),val2));
+      }
     }
   }
+
 }
 
 static inline float _operate(const int start_row        ,
@@ -79,12 +110,16 @@ static inline float _operate(const int start_row        ,
 
   float val = 0.0;
   float val2;
+{
+  printf("Number of threads %d\n",omp_get_num_threads());
+  #pragma omp for
   for(int r=start_row;r<=end_row;r++){
     for(int c=start_col;c<=end_col;c++){
       val2 = _getE(mat,r,c);
       val = (*func)(val2,val);
     }
   }
+}
   return val;
 }
 
@@ -388,7 +423,9 @@ int setAllMatrix(matrix * mat, const float val){
     return -1;
 	}
 #endif
+{
   _manipulate(mat,val,&_val);
+}
 	return 0;
 }
 
@@ -401,8 +438,11 @@ int addAllMatrix(matrix * mat, const float val){
     return -1;
 	}
 #endif
+{
   _manipulate(mat,val,&_add);
-	return 0;
+
+}
+return 0;
 }
 
 int subAllMatrix(matrix * mat, const float val){
@@ -414,7 +454,9 @@ int subAllMatrix(matrix * mat, const float val){
     return -1;
 	}
 #endif
+{
   _manipulate(mat,val,&_sub);
+}
 	return 0;
 }
 
@@ -427,7 +469,9 @@ int mulAllMatrix(matrix * mat, const float val){
     return -1;
 	}
 #endif
+{
   _manipulate(mat,val,&_mul);
+}
 	return 0;
 }
 
@@ -440,7 +484,9 @@ int divAllMatrix(matrix * mat, const float val){
     return -1;
 	}
 #endif
+{
   _manipulate(mat,val,&_div);
+}
 	return 0;
 }
 

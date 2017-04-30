@@ -11,15 +11,15 @@
 
 CC = gcc
 
-CFLAGS = -Wall -Wextra -std=c99 -pedantic -g --save-temps -D _ERROR_CHECKING_ON_
+CFLAGS = -Wall -Wextra -std=c99 -O2 -pedantic -g --save-temps -D _ERROR_CHECKING_ON_
 
 ALL : test_matrix
 
 test_matrix : test_matrix.c matrix.o
-	$(CC) $(CFLAGS) -o test_matrix test_matrix.c matrix.o -lm
+	$(CC) $(CFLAGS) -o test_matrix test_matrix.c matrix.o -lm -fopenmp
 
 matrix.o : matrix.c
-	$(CC) $(CFLAGS) -c matrix.c
+	$(CC) $(CFLAGS) -c matrix.c -fopenmp
 
 .PHONY : clean
 clean :
