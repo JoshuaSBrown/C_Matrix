@@ -66,9 +66,40 @@ static inline __attribute__((always_inline))
 void _manipulate(matrix * mat             ,
 	               float val                ,
 							   float (*func)(float,float)){
+  
+  
+  for(int r=0;r<mat->rows;r++){
+    for(int c=0;c<mat->cols;c++){
+      _setE(mat,r,c,(*func)(_getE(mat,r,c),val));
+    }
+  }
 
+}
 
+static inline float _operate(const int start_row        ,
+                             const int end_row          ,
+                             const int start_col        ,
+                             const int end_col          ,
+                             const matrix * mat         ,
+                             float (*func) (float,float))
+{
+  float val=0.0;
 
+  for(int r=start_row;r<=end_row;r++){
+    for(int c=start_col;c<=end_col;c++){
+      val = (*func)(_getE(mat,r,c),val);
+    }
+  }
+
+  return val;
+}
+
+// OpenMP version of manipulate
+static inline __attribute__((always_inline)) 
+void _manipulateOpenMP(matrix * mat             ,
+	               float val                ,
+							   float (*func)(float,float)){
+  
   #pragma omp parallel for shared(mat)
   for(int i=0;i<omp_get_num_threads();i++){
     int rank = omp_get_thread_num();
@@ -89,9 +120,6 @@ void _manipulate(matrix * mat             ,
       rows++;
     }    
 
-    printf("Number of threads %d rank %d rows %d\nr_start %d\n"
-           "r_finish %d\n",proc,rank,rows,r_start,r_finish);
-  
     for(int r=r_start;r<r_finish;r++){
       for(int c=0;c<cols;c++){
         _setE(mat,r,c,(*func)(_getE(mat,r,c),val2));
@@ -101,25 +129,58 @@ void _manipulate(matrix * mat             ,
 
 }
 
-static inline float _operate(const int start_row        ,
+// MP version of operate
+static inline float _operateOpenMP(const int start_row        ,
                              const int end_row          ,
                              const int start_col        ,
                              const int end_col          ,
                              const matrix * mat         ,
-                             float (*func) (float,float)){
-
-  float val = 0.0;
-  float val2;
+                             float (*func) (float,float))
 {
-  printf("Number of threads %d\n",omp_get_num_threads());
-  #pragma omp for
-  for(int r=start_row;r<=end_row;r++){
-    for(int c=start_col;c<=end_col;c++){
-      val2 = _getE(mat,r,c);
-      val = (*func)(val2,val);
+
+ 
+  int proc=omp_get_num_threads();
+  float * ar = calloc(proc,sizeof(float));
+ 
+  #pragma omp parallel for shared(mat,ar)
+  for(int i=0;i<proc;i++){
+    int rank = omp_get_thread_num();
+    int rows = (end_row-start_row+1)/proc;
+    int rem  = (end_row-start_row+1)%proc;
+    int cols = (end_col-start_col+1);
+    int r_start;
+    int r_finish;
+   
+    float temp=0;
+ 
+    if(rank<(proc-rem)){
+      r_start = rank*rows+start_row;
+      r_finish = r_start+rows+start_row;
+    }else{
+      r_start = (proc-rem)*rows+(rank-(proc-rem))*(rows+1)+start_row;
+      r_finish = r_start+(rows+1)+start_row;
+      rows++;
+    }    
+
+    int c_start = start_col;
+    int c_finish = cols+c_start;
+
+    for(int r=r_start;r<r_finish;r++){
+      for(int c=c_start;c<c_finish;c++){
+        temp = (*func)(_getE(mat,r,c),temp);
+      }
     }
+
+    ar[rank]=temp;
   }
-}
+  
+  // Reduce the data using a custom Reduce
+  float val = 0.0;
+  for(int i=0;i<proc;i++){
+    val = (*func)(ar[i],val);
+    printf("val %f\n",val);
+  }
+  free(ar);
   return val;
 }
 
