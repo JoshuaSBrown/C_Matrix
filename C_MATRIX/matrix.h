@@ -157,4 +157,13 @@ int multiplyMatrix(matrix *c, const matrix * a, const matrix * b);
  *  0 - success                                                               */
 int generateFileMatrix(char * filename, const matrix * mat);
 
+// OpenMP versions of the functions
+
+int sumAllElemsMatrixOpenMP(const matrix * mat, float * sum);
+int setAllMatrixOpenMP(matrix * mat, const float val);
+int addAllMatrixOpenMP(matrix * mat, const float val);
+int subAllMatrixOpenMP(matrix * mat, const float val);
+int mulAllMatrixOpenMP(matrix * mat, const float val);
+int divAllMatrixOpenMP(matrix * mat, const float val);
+
 #endif

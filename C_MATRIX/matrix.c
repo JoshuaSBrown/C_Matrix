@@ -104,7 +104,7 @@ void _manipulateOpenMP(matrix * mat             ,
   for(int i=0;i<omp_get_num_threads();i++){
     int rank = omp_get_thread_num();
     int proc = omp_get_num_threads();
-    const int val2 = val;
+    const float val2 = val;
     int rows = mat->rows/proc;
     int rem  = mat->rows%proc;
     int cols = mat->cols;
@@ -119,7 +119,6 @@ void _manipulateOpenMP(matrix * mat             ,
       r_finish = r_start+(rows+1);
       rows++;
     }    
-
     for(int r=r_start;r<r_finish;r++){
       for(int c=0;c<cols;c++){
         _setE(mat,r,c,(*func)(_getE(mat,r,c),val2));
@@ -139,41 +138,43 @@ static inline float _operateOpenMP(const int start_row        ,
 {
 
  
-  int proc=omp_get_num_threads();
-  float * ar = calloc(proc,sizeof(float));
- 
-  #pragma omp parallel for shared(mat,ar)
-  for(int i=0;i<proc;i++){
-    int rank = omp_get_thread_num();
-    int rows = (end_row-start_row+1)/proc;
-    int rem  = (end_row-start_row+1)%proc;
-    int cols = (end_col-start_col+1);
-    int r_start;
-    int r_finish;
+  float * ar = calloc(omp_get_max_threads(),sizeof(float));
+  int proc = 0; 
+  #pragma omp parallel shared(mat,ar,proc)
+  {
+    proc = omp_get_max_threads();
+  #pragma omp for schedule(static) 
+    for(int i=0;i<proc;i++){
+      int rank = omp_get_thread_num();
+      int rows = (end_row-start_row+1)/proc;
+      int rem  = (end_row-start_row+1)%proc;
+      int cols = (end_col-start_col+1);
+      int r_start;
+      int r_finish;
+     
+      float temp=0;
    
-    float temp=0;
- 
-    if(rank<(proc-rem)){
-      r_start = rank*rows+start_row;
-      r_finish = r_start+rows+start_row;
-    }else{
-      r_start = (proc-rem)*rows+(rank-(proc-rem))*(rows+1)+start_row;
-      r_finish = r_start+(rows+1)+start_row;
-      rows++;
-    }    
+      if(rank<(proc-rem)){
+        r_start = rank*rows+start_row;
+        r_finish = r_start+rows+start_row;
+      }else{
+        r_start = (proc-rem)*rows+(rank-(proc-rem))*(rows+1)+start_row;
+        r_finish = r_start+(rows+1)+start_row;
+        rows++;
+      }    
 
-    int c_start = start_col;
-    int c_finish = cols+c_start;
-
-    for(int r=r_start;r<r_finish;r++){
-      for(int c=c_start;c<c_finish;c++){
-        temp = (*func)(_getE(mat,r,c),temp);
+      int c_start = start_col;
+      int c_finish = cols+c_start;
+      int r;
+      int c;
+      for( r=r_start;r<r_finish;r++){
+        for( c=c_start;c<c_finish;c++){
+          temp = (*func)(_getE(mat,r,c),temp);
+        }
       }
+      ar[rank]=temp;
     }
-
-    ar[rank]=temp;
-  }
-  
+  } 
   // Reduce the data using a custom Reduce
   float val = 0.0;
   for(int i=0;i<proc;i++){
@@ -345,6 +346,29 @@ int sumAllElemsMatrix(const matrix * mat,float * sum){
 	return 0;
 }
 
+int sumAllElemsMatrixOpenMP(const matrix * mat,float * sum){
+
+#ifdef _ERROR_CHECKING_ON_
+	if(mat==NULL){
+		fprintf(stderr,"ERROR mat is NULL in sumAllElemsMatrix\n");
+    _hardcrash();
+    return -1;
+	}
+	if(sum==NULL){
+		fprintf(stderr,"ERROR sum is NULL in sumAllElemsMatrix\n");
+    _hardcrash();
+    return -1;
+	}
+#endif
+  *sum = 0.0;
+  *sum = _operateOpenMP(0,mat->rows-1,
+                        0,mat->cols-1,
+                        mat,
+                        &_add);
+	return 0;
+}
+
+
 int sumElemsMatrix(const int start_row,
                    const int end_row  ,
                    const int start_col,
@@ -475,6 +499,21 @@ int setElemMatrix(matrix * mat, const int r, const int c, const float val){
 	return 0;
 }
 
+int setAllMatrixOpenMP(matrix * mat, const float val){
+
+#ifdef _ERROR_CHECKING_ON_
+	if(mat==NULL){
+		fprintf(stderr,"ERROR mat is NULL in setAllMatrix\n");
+    _hardcrash();
+    return -1;
+	}
+#endif
+{
+  _manipulateOpenMP(mat,val,&_val);
+}
+	return 0;
+}
+
 int setAllMatrix(matrix * mat, const float val){
 
 #ifdef _ERROR_CHECKING_ON_
@@ -489,6 +528,23 @@ int setAllMatrix(matrix * mat, const float val){
 }
 	return 0;
 }
+
+int addAllMatrixOpenMP(matrix * mat, const float val){
+
+#ifdef _ERROR_CHECKING_ON_
+	if(mat==NULL){
+		fprintf(stderr,"ERROR mat is NULL in addAllMatrix\n");
+    _hardcrash();
+    return -1;
+	}
+#endif
+{
+  _manipulateOpenMP(mat,val,&_add);
+
+}
+return 0;
+}
+
 
 int addAllMatrix(matrix * mat, const float val){
 
@@ -506,6 +562,21 @@ int addAllMatrix(matrix * mat, const float val){
 return 0;
 }
 
+int subAllMatrixOpenMP(matrix * mat, const float val){
+
+#ifdef _ERROR_CHECKING_ON_
+	if(mat==NULL){
+		fprintf(stderr,"ERROR mat is NULL in subAllMatrix\n");
+    _hardcrash();
+    return -1;
+	}
+#endif
+{
+  _manipulateOpenMP(mat,val,&_sub);
+}
+	return 0;
+}
+
 int subAllMatrix(matrix * mat, const float val){
 
 #ifdef _ERROR_CHECKING_ON_
@@ -521,6 +592,21 @@ int subAllMatrix(matrix * mat, const float val){
 	return 0;
 }
 
+int mulAllMatrixOpenMP(matrix * mat, const float val){
+
+#ifdef _ERROR_CHECKING_ON_
+	if(mat==NULL){
+		fprintf(stderr,"ERROR mat is NULL in mulAllMatrix\n");
+    _hardcrash();
+    return -1;
+	}
+#endif
+{
+  _manipulateOpenMP(mat,val,&_mul);
+}
+	return 0;
+}
+
 int mulAllMatrix(matrix * mat, const float val){
 
 #ifdef _ERROR_CHECKING_ON_
@@ -532,6 +618,21 @@ int mulAllMatrix(matrix * mat, const float val){
 #endif
 {
   _manipulate(mat,val,&_mul);
+}
+	return 0;
+}
+
+int divAllMatrixOpenMP(matrix * mat, const float val){
+
+#ifdef _ERROR_CHECKING_ON_
+	if(mat==NULL){
+		fprintf(stderr,"ERROR mat is NULL in divAllMatrix\n");
+    _hardcrash();
+    return -1;
+	}
+#endif
+{
+  _manipulateOpenMP(mat,val,&_div);
 }
 	return 0;
 }

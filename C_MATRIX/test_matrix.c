@@ -34,7 +34,7 @@
 int main(void){
 
     /* Creator                                                                  */
-/*  {
+  {
     printf("Testing: newMatrix\n");
     matrix * mat = newMatrix(0,1);
     assert(mat==NULL);
@@ -308,81 +308,6 @@ int main(void){
     deleteMatrix(&mat2);
     deleteMatrix(&mat);
   }
-*/
-  printf("Testing: Performance\n");
-  {
-    int size = 18000;
-    matrix * mat = newMatrix(size,size);
-    assert(mat);
-    printf("Testing: Performance setAll\n");
-    
-    omp_set_num_threads(1);
-    double t0 = omp_get_wtime();
-    int rv = setAllMatrix(mat,1.0);
-    assert(rv==0);
-    double t1 = omp_get_wtime();
-    double elapsed = (t1-t0);
-    // Check that all values were set to 1.0
-    for(int r=0;r<size;r++){
-      for(int c=0;c<size;c++){
-        float temp;
-        getElemMatrix(mat,r,c,&temp);
-        assert(temp==1.0); 
-      }
-    } 
-    printf("Serial run time %g\n",elapsed);
-    
-    omp_set_num_threads(4);
-    t0 = omp_get_wtime();
-    rv = setAllMatrix(mat,2.0);
-    assert(rv==0);
-    t1 = omp_get_wtime();
-    elapsed = (t1-t0);
-    for(int r=0;r<size;r++){
-      for(int c=0;c<size;c++){
-        float temp;
-        getElemMatrix(mat,r,c,&temp);
-        assert(temp==2.0); 
-      }
-    }
-    printf("Parallel run time %g\n",elapsed);
-    
-    deleteMatrix(&mat);
-  }
-
-  printf("Testing: Function Integrity when with OpenMP\n");
-  {
-    int size = 1000;
-    matrix * mat = newMatrix(size,size);
-    assert(mat);
-
-    omp_set_num_threads(1);
-    int rv = setAllMatrix(mat,1.0);
-    assert(rv==0);
-    float sum;
-    double t0 = omp_get_wtime();
-    rv = sumAllElemsMatrix(mat,&sum);
-    assert(rv==0);
-    printf("%f and %f\n",sum,(float)size*size);
-    assert(sum==(float)size*size);
-    double t1 = omp_get_wtime();
-    double elapsed = (t1-t0);
-    printf("Serial run time %g\n",elapsed);
-
-    omp_set_num_threads(4);
-    rv = setAllMatrix(mat,2.0);
-    t0 = omp_get_wtime();
-    rv = sumAllElemsMatrix(mat,&sum);
-    assert(rv==0);
-    assert(sum==((float)size*size)*2.0);
-    t1 = omp_get_wtime();
-    elapsed = (t1-t0);
-    printf("Parallel run time %g\n",elapsed);
-    
-    deleteMatrix(&mat);
-
-
-  } 
 
   return 0;
 }
