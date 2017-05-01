@@ -63,8 +63,8 @@ static inline void _addE(matrix * mat   ,
 }
 
 static inline __attribute__((always_inline)) 
-void _manipulate(matrix * mat              ,
-	               float val           ,
+void _manipulate(matrix * mat             ,
+	               float val                ,
 							   float (*func)(float,float)){
 
 

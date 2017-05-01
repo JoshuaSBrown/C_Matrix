@@ -311,22 +311,24 @@ int main(void){
 */
   printf("Testing: Performance\n");
   {
-    matrix * mat = newMatrix(15000,15000);
+    matrix * mat = newMatrix(18000,18000);
     assert(mat);
     printf("Testing: Performance setAll\n");
     omp_set_num_threads(1);
-    clock_t t0 = clock();
+    //clock_t t0 = clock();
+    double t0 = omp_get_wtime();
     int rv = setAllMatrix(mat,1.0);
     assert(rv==0);
-    clock_t t1 = clock();
-    double elapsed = (double)(t1-t0)/CLOCKS_PER_SEC;
+    //clock_t t1 = clock();
+    double t1 = omp_get_wtime();
+    double elapsed = (t1-t0);
     printf("Serial run time %g\n",elapsed);
     omp_set_num_threads(2);
-    t0 = clock();
+    t0 = omp_get_wtime();
     rv = setAllMatrix(mat,2.0);
     assert(rv==0);
-    t1 = clock();
-    elapsed = (double)(t1-t0)/CLOCKS_PER_SEC;
+    t1 = omp_get_wtime();
+    elapsed = (t1-t0);
     printf("Parallel run time %g\n",elapsed);
     deleteMatrix(&mat);
   }
