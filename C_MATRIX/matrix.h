@@ -79,6 +79,10 @@ int sumElemsMatrix(const int start_row,
  * -1 - indicates the matrix was NULL                                         */
 int getTotalElemsMatrix(const matrix * mat);
 
+int * getRowPtrMatrix(matrix * mat);
+int * getColPtrMatrix(matrix * mat);
+float * getDataPtrMatrix(matrix * mat);
+
 /* Grab an element at row r and column c and place it in the pointer val, the *
  * return value is given as:                                                  *
  * -1 - indicates r and c were out of bounds or that mat or val were NULL     *
@@ -157,6 +161,7 @@ int multiplyMatrix(matrix *c, const matrix * a, const matrix * b);
  *  0 - success                                                               */
 int generateFileMatrix(char * filename, const matrix * mat);
 
+#ifdef _OPENMP
 // OpenMP versions of the functions
 
 int sumAllElemsMatrixOpenMP(const matrix * mat, float * sum);
@@ -165,5 +170,6 @@ int addAllMatrixOpenMP(matrix * mat, const float val);
 int subAllMatrixOpenMP(matrix * mat, const float val);
 int mulAllMatrixOpenMP(matrix * mat, const float val);
 int divAllMatrixOpenMP(matrix * mat, const float val);
+#endif
 
 #endif
