@@ -269,6 +269,14 @@ float * getDataPtrMatrix(matrix * mat){
   return &(mat->data[0]);
 }
 
+float * getDataPtrElemMatrix(matrix * mat,
+                       int r, 
+                       int c){
+
+  float * val = &(mat->data[(r)*mat->cols+c]);
+	return val;
+}
+
 int sumAllElemsMatrix(const matrix * mat,float * sum){
 
 #ifdef _ERROR_CHECKING_ON_

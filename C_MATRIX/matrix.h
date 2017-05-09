@@ -79,10 +79,17 @@ int sumElemsMatrix(const int start_row,
  * -1 - indicates the matrix was NULL                                         */
 int getTotalElemsMatrix(const matrix * mat);
 
+
+/* These functions are only meant to be used by select users that
+ * are using MPI_Ghost_Rows */
+#ifdef _MPI_GHOST_MATRIX_MATRIX_PLUGIN_ 
 int * getRowPtrMatrix(matrix * mat);
 int * getColPtrMatrix(matrix * mat);
 float * getDataPtrMatrix(matrix * mat);
-
+float * getDataPtrElemMatrix(matrix * mat,
+                       int r,
+                       int c);
+#endif
 /* Grab an element at row r and column c and place it in the pointer val, the *
  * return value is given as:                                                  *
  * -1 - indicates r and c were out of bounds or that mat or val were NULL     *
